@@ -1,0 +1,84 @@
+hostname {{ hostname }}
+ip domain-name networklore.com
+
+lldp run
+
+aaa new-model
+aaa authentication login LOCALDB local
+aaa authorization exec LOCALDB-AUTHZ local
+
+username {{ staging_user }} priv 15 secret {{ staging_password }}
+
+line vty 0 4
+ authorization exec LOCALDB-AUTHZ
+ login authentication LOCALDB
+ transport input ssh
+
+crypto key generate rsa general-keys modulus 2048
+
+
+snmp-server location {{ location }}
+
+vtp mode transparent
+vlan internal allocation policy ascending
+
+no ip http server
+no ip http secure-server
+
+ip dhcp snooping information option format remote-id hostname
+ip dhcp snooping
+
+{% for vlan in vlans %}
+vlan {{ vlan.id }}
+ name {{ vlan.name }}
+
+ip dhcp snooping vlan {{ vlan.id }}
+{% endfor %}
+
+{% if platform == 'c2960' %}
+ip default-gateway {{ gateway }}
+
+interface Vlan1
+ shut
+
+{% else %}
+ip route 0.0.0.0 0.0.0.0 {{ gateway }}
+{% endif %}
+
+{% for if in ip_interfaces %}
+interface {{ if.name }}
+ ip address {{ if.ip }} {{ if.mask }}
+{% if if.ip_helper is defined %}
+ ip helper-address {{ if.ip_helper }}
+{% endif %}
+ no shut
+
+{% endfor %}
+
+{% for if in links %}
+interface {{ if.interface }}
+
+{% if if.access_vlan is defined %}
+ switchport mode access
+ switchport access vlan {{ if.access_vlan }}
+{% endif %}
+
+{% if if.snooping_trust is defined %}
+ ip dhcp snooping trust
+{% else %} 
+ ip dhcp snooping information option allow-untrusted
+{% if if.access_vlan is defined %}
+ ip dhcp snooping vlan {{ if.access_vlan }} information option format-type circuit-id string {{ if.interface_brief }}
+{% endif %}
+{% endif %}
+
+{% if if.trunk is defined %}
+ switchport mode trunk
+ switchport trunk native vlan {{ if.trunk.native }}
+ switchpor trunk allowed vlans {{ if.trunk.vlans|join(', ') }}
+{% endif %}
+
+
+{% endfor %}
+
+end

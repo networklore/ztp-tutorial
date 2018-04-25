@@ -1,0 +1,5 @@
+---
+tftp_root: "/opt/ztp/tftproot"
+redis_url: "redis://"
+inventory: "/opt/ztp/devices.yaml"
+template_dir: "/opt/ztp/templates"

@@ -1,0 +1,19 @@
+hostname staging
+ip domain-name networklore.com
+
+lldp run
+
+aaa new-model
+aaa authentication login LOCALDB local
+aaa authorization exec LOCALDB-AUTHZ local
+
+username {{ staging_user }} priv 15 secret {{ staging_password }}
+
+line vty 0 4
+ authorization exec LOCALDB-AUTHZ
+ login authentication LOCALDB
+
+
+crypto key generate rsa general-keys modulus 2048
+
+end
