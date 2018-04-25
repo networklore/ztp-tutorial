@@ -1,0 +1,113 @@
+---
+og-sw-01:
+  management_ip: 172.29.50.3
+  ip_interfaces:
+    - name: Vlan20
+      ip: 172.29.50.3
+      mask: 255.255.255.224
+  links:
+    - interface: "FastEthernet0/7"
+      interface_brief: fa0_7
+      neighbor: og-sw-02
+      neighbor_if: GigabitEthernet0/1
+  location: desk
+  platform: c2960
+  model: WS-C2960-8TC-L
+  gateway: 172.29.50.1
+  vlans:
+    - id: 20
+      name: TRANSIT
+
+og-sw-02:
+  management_ip: 172.29.50.14
+  ip_interfaces:
+    - name: Vlan20
+      ip: 172.29.50.14
+      mask: 255.255.255.224
+  links:
+    - interface: "GigabitEthernet0/1"
+      interface_brief: ge0_1
+      neighbor: og-sw-01
+      neighbor_if: FastEthernet0/7
+      access_vlan: 20
+      snooping_trust: True
+    - interface: FastEthernet0/2
+      interface_brief: fa0_2
+      neighbor: lab-sw-01
+      neighbor_if: FastEthernet0/1
+      access_vlan: 20
+  location: desk
+  platform: c2960
+  model: WS-C2960-8TC-S
+  gateway: 172.29.50.1
+  vlans:
+    - id: 20
+      name: TRANSIT
+
+lab-sw-01:
+  management_ip: 172.29.50.15
+  ip_interfaces:
+    - name: Vlan20
+      ip: 172.29.50.15
+      mask: 255.255.255.224
+  links:
+    - interface: "FastEthernet0/1"
+      interface_brief: Fa0_1
+      neighbor: og-sw-02
+      neighbor_if: FastEthernet0/2
+      access_vlan: 20
+      snooping_trust: True
+    - interface: FastEthernet0/4
+      interface_brief: Fa0_4
+      neighbor_if: FastEthernet4
+      neighbor: lab-rtr-01
+      access_vlan: 20
+  location: closet
+  platform: c2960
+  model: WS-C2960C-8TC-L
+  gateway: 172.29.50.1
+  vlans:
+    - id: 20
+      name: TRANSIT
+
+
+lab-rtr-01:
+  management_ip: 172.29.50.16
+  ip_interfaces:
+    - name: FastEthernet4
+      ip: 172.29.50.16
+      mask: 255.255.255.224
+    - name: Vlan100
+      ip: 192.168.10.1
+      mask: 255.255.255.0
+      ip_helper: 172.29.58.10
+    - name: Vlan200
+      ip: 192.168.12.1
+      mask: 255.255.255.0
+      ip_helper: 172.29.58.10
+  links:
+    - interface: "FastEthernet4"
+      snooping_trust: True
+      interface_brief: fa4
+      neighbor: lab-sw-01
+      neighbor_if: FastEthernet0/4
+    - interface: "FastEthernet0"
+      interface_brief: fa0
+      neighbor: lab-sw-01
+      neighbor_if: FastEthernet0/1
+      trunk:
+        vlans:
+          - 100
+          - 200
+        native: 100
+  location: closet
+  platform: c880
+  model: 881
+  gateway: 172.29.50.1
+  vlans:
+    - id: 100
+      name: MANAGEMENT
+    - id: 200
+      name: USERS
+
+
